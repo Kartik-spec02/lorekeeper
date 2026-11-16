@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  stories      Story[]
+}
+
+model Story {
+  id          String         @id @default(cuid())
+  title       String
+  description String?
+  ownerId     String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  owner       User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  characters  Character[]
+  scenes      Scene[]
+  warnings    CanonWarning[]
+  arcPoints   ArcDataPoint[]
+
+  @@index([ownerId])
+}
+
+model Character {
+  id               String            @id @default(cuid())
+  name             String
+  description      String
+  lastSeenLocation String
+  storyId          String
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  story            Story             @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  voiceSamples     VoiceSample[]
+  sceneAppearances SceneCharacter[]
+  warnings         CanonWarning[]
+
+  @@index([storyId])
+}
+
+model VoiceSample {
+  id          String    @id @default(cuid())
+  text        String
+  characterId String
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@index([characterId])
+}
+
+model Scene {
+  id               String           @id @default(cuid())
+  title            String
+  content          String
+  emotionalBeat    Int
+  storyId          String
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  story            Story            @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  characters       SceneCharacter[]
+  warnings         CanonWarning[]
+
+  @@index([storyId])
+}
+
+model SceneCharacter {
+  sceneId     String
+  characterId String
+  scene       Scene     @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@id([sceneId, characterId])
+  @@index([characterId])
+}
+
+model CanonWarning {
+  id            String      @id @default(cuid())
+  severity      String
+  message       String
+  storyId       String
+  sceneId       String?
+  characterId   String?
+  createdAt     DateTime    @default(now())
+  story         Story       @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  scene         Scene?      @relation(fields: [sceneId], references: [id], onDelete: SetNull)
+  character     Character?  @relation(fields: [characterId], references: [id], onDelete: SetNull)
+
+  @@index([storyId])
+  @@index([sceneId])
+  @@index([characterId])
+}
+
+model ArcDataPoint {
+  id            String   @id @default(cuid())
+  sceneId       String
+  sceneTitle    String
+  emotionalBeat Int
+  storyId       String
+  story         Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+
+  @@index([storyId])
+}

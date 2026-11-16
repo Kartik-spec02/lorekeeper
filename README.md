@@ -85,9 +85,22 @@ LOREKEEPER turns those notes into a machine-checkable canon. Give it a prompt, a
 
 ```bash
 npm install
+npm run db:generate
+npm run db:migrate -- --name init
 npm run dev
 # open http://localhost:3000/dashboard
 ```
+
+Copy `.env.example` to `.env` and set a long random `AUTH_SECRET` before using the
+authentication routes. The local SQLite database is created at `prisma/dev.db`
+and is intentionally ignored by Git.
+
+Authentication endpoints:
+
+- `POST /api/auth/register` — create an account with `name`, `email`, and `password`
+- `POST /api/auth/login` — start a session with `email` and `password`
+- `GET /api/auth/me` — retrieve the current session user
+- `POST /api/auth/logout` — clear the current session
 
 ## Team
 
